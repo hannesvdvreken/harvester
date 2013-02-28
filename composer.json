@@ -1,0 +1,21 @@
+{
+	"name": "hannesvdvreken/harvester",
+	"description": "using memcache and an asynchronous service to handle multiple scraper workers.",
+	"keywords": ["input", "scraper", "json", "iRail", "mobile"],
+	"homepage": "https://github.com/irail",
+	"type": "library",
+	"license": "AGPLv3",
+	"require": {
+		"php": ">=5.4.0",
+		"tdt/cache": "dev-master",
+		"tdt/input": "dev-master",
+		"laravel/curl": "dev-master"
+	},
+	"require-all": true,
+    "minimum-stability" : "dev",
+    "autoload": {
+		"psr-0": {
+			"hannesvdvreken\\harvester\\": "src/"
+		}
+	}
+}

@@ -1,0 +1,5 @@
+*.DS_Store
+.project
+/vendor/
+/composer.lock
+/src/hannesvdvreken/harvester/config/config.php
