@@ -3,3 +3,4 @@
 /vendor/
 /composer.lock
 /src/hannesvdvreken/harvester/config/config.php
+/src/hannesvdvreken/harvester/config/private.pem
