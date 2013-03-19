@@ -41,9 +41,9 @@
 		$json = $curl->simple_post($remote.$request_uri, $params);
 		$result = json_decode($json);
 
-		if (isset($result->error) && $result->error != 1)
+		if (!is_null($curl->error_code))
 		{
-			$log_entry = ['result'=>$result, 'origin'=>'run.php', 'request'=>$remote.$request_uri, 'method'=>'POST', 'post_params' => $params];
+			$log_entry = ['origin'=>'run.php', 'log'=>'post failed', 'request'=>$remote.$request_uri, 'method'=>'POST', 'post_params' => $params];
 			$logger->log($log_entry);
 			exit;
 		}
