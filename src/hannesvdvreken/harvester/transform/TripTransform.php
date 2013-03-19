@@ -12,8 +12,7 @@ class TripTransform extends ATransformer{
     
 	public function execute(&$chunk)
 	{
-		echo json_encode($chunk);
-		return $chunk;
+		return [ $chunk->sequence, $chunk->tid, $chunk->sid, $chunk->headsign, $chunk->departure_time, $chunk->arrival_time, $chunk->departure_delay, $chunk->arrival_delay, $chunk->date ];
 	}
 
 }

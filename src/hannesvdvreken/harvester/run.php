@@ -1,6 +1,6 @@
 <?php
 	/**
-	 * Copyright (C) 2012 by iRail vzw/asbl
+	 * Copyright (C) 2013 by iRail vzw/asbl
 	 *
 	 * @author Hannes Van De Vreken (hannes aŧ irail.be) 
 	 * @license AGPLv3
@@ -9,57 +9,79 @@
 	namespace hannesvdvreken\harvester;
 
 	require_once '../../../vendor/autoload.php';
-	require_once 'config/config.php';
 
 	use tdt\cache\Cache;
 
-	define('PRVKEY',file_get_contents($config['private_key']));
+	header('Content-type: application/json');
 
-	function sign_request($request_uri) {
-		/* make nonce */
-		$nonce = base64_encode(openssl_random_pseudo_bytes(48));
-		$prvkey = openssl_get_privatekey(PRVKEY);
-
-		/* sign */
-		openssl_private_encrypt("$request_uri+$nonce", $encrypted, $prvkey);
-		$signature = base64_encode($encrypted);
-
-		/* return signature parameters */
-		return ["nonce"=>$nonce,"signature"=>$signature];
-	}
+	$stop_model = new model\Stop();
 
 	/* testing */
-	$stops = ['751'];
-	$trips = ['562'];
+	$stops = $stop_model->get_all();
+	$stops = [["sid"=>"751","stop"=>"Londerzeel"]];
 	
-	$date = date('Ymd', strtotime('+2 weeks'));
-	$i = 0;
+	$date = date('Ymd', strtotime('+3 days'));
 
 	$curl = new \Curl();
+	$logger = new model\Logger();
 	$cache = Cache::getInstance(['system'=>'MemCache']);
-	$type = 'trip';
 	
-	foreach ($trips as $trip)
+	foreach ($stops as $stop)
 	{
 		/* prepare */
-		$remote = $config['remote'][$i];
-		$request_uri = "$type/$trip/$date";
+		$request_uri = "stop/".$stop['sid']."/$date";
+		$remote = Utils::get_scraper($request_uri);
 
 		/* sign request */
-		$params = sign_request($request_uri);
+		$params = Utils::sign_request($request_uri);
 
 		/* make request */
+		$log_entry = ['request'=>$remote.$request_uri, 'method'=>'POST', 'origin'=>'run.php', 'post_params' => $params];
+		$logger->log($log_entry);
 		$json = $curl->simple_post($remote.$request_uri, $params);
 		$result = json_decode($json);
 
-		if ($result->error != 1)
+		if (isset($result->error) && $result->error != 1)
 		{
-			$result->request_uri = $request_uri;
-			echo json_encode($result);
+			$log_entry = ['result'=>$result, 'origin'=>'run.php', 'request'=>$remote.$request_uri, 'method'=>'POST', 'post_params' => $params];
+			$logger->log($log_entry);
 			exit;
 		}
 
-		$cache->set('awaiting/'.$request_uri, ['time'=>date('c'),'nonce'=>$params['nonce']], 60*60);
-		
-		$i = ( $i + 1 ) % count($config['remote']);
+		$cache->set('awaiting/'.$request_uri, ['time'=>date('c'), 'signature'=>$params['signature'], 'nonce'=>$params['nonce']], 60*60);
+
+		if ($stop != end($stops)) {
+			sleep(config\Config::$stops_interval);
+		}
 	}
+
+	sleep( 300 ); // 5 minutes
+	$uncompleted = [];
+
+	/* check for all jobs to be finished */
+	foreach ($stops as $stop)
+	{
+		$request_uri = "stop/".$stop['sid']."/$date";
+		$remote = Utils::get_scraper($request_uri);
+		$json = $curl->simple_get($remote.$request_uri);
+		$result = json_decode($json);
+
+		if (isset($result['error'])) {
+			$uncompleted[] = $request_uri;
+		} else {
+			foreach ($result as $trips)
+			{
+				$tid = $trip['tid'];
+				$request_uri = "trip/$tid/$date";
+				$remote = Utils::get_scraper( $request_uri );
+				$json = $curl->simple_get($remote.$request_uri);
+				$result = json_decode($json);
+				if (isset($result->error)) {
+					$uncompleted[] = $request_uri;
+				}
+			}
+		}
+	}
+
+	$log_entry = ['uncompleted'=>$uncompleted, 'origin'=>'run.php'];
+	$logger->log($log_entry);
