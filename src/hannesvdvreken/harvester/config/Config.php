@@ -25,6 +25,4 @@ class Config {
 	public static $stops_interval = 10;
 	public static $trips_interval = 3;
 
-	public static $mapfile = ['trip' => 'http://dispatching.dev/trips.ttl'];
-
 }
