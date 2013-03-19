@@ -38,7 +38,7 @@
 		/* make request */
 		$log_entry = ['request'=>$remote.$request_uri, 'method'=>'POST', 'origin'=>'run.php', 'post_params' => $params];
 		$logger->log($log_entry);
-		$json = $curl->simple_post($remote.$request_uri, $params);
+		$json = $curl->simple_post($remote.$request_uri, $params, ['CURLOPT_SSL_VERIFYPEER'=>false]);
 		$result = json_decode($json);
 
 		if (!is_null($curl->error_code))
@@ -54,6 +54,8 @@
 			sleep(config\Config::$stops_interval);
 		}
 	}
+
+	exit;
 
 	sleep( 300 ); // 5 minutes
 	$uncompleted = [];
