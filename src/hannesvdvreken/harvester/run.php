@@ -38,12 +38,12 @@
 		/* make request */
 		$log_entry = ['request'=>$remote.$request_uri, 'method'=>'POST', 'origin'=>'run.php', 'post_params' => $params];
 		$logger->log($log_entry);
-		$json = $curl->simple_post($remote.$request_uri, $params, ['CURLOPT_SSL_VERIFYPEER'=>false]);
+		$json = $curl->simple_post($remote.$request_uri, $params, [CURLOPT_SSL_VERIFYPEER=>false]);
 		$result = json_decode($json);
 
 		if (!is_null($curl->error_code))
 		{
-			$log_entry = ['origin'=>'run.php', 'log'=>'post failed', 'request'=>$remote.$request_uri, 'method'=>'POST', 'post_params' => $params];
+			$log_entry = ['origin'=>'run.php', 'json'=>$json, 'log'=>'post failed', 'error_string'=>$curl->error_string, 'error_code'=> $curl->error_code, 'request'=>$remote.$request_uri, 'method'=>'POST', 'post_params' => $params];
 			$logger->log($log_entry);
 			exit;
 		}

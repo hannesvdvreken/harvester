@@ -71,7 +71,7 @@
 			$params = Utils::sign_request($request_uri);
 
 			/* go */
-			$r = $curl->simple_post($remote.$request_uri, $params);
+			$r = $curl->simple_post($remote.$request_uri, $params, [CURLOPT_SSL_VERIFYPEER=>false]);
 			$log_entry = ['origin'=>'notify.php', 'request'=>$remote.$request_uri, 'method'=>'POST', 'post_params'=>$params];
 			$logger->log($log_entry);
 
