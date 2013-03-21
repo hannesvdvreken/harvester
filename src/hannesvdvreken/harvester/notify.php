@@ -36,12 +36,13 @@
 
 	/* check the nonce */
 	$c = $cache->get('awaiting/'.$request_uri);
-	if ($c['nonce'] != $nonce)
+	if ( $c && isset($c['nonce']) && $c['nonce'] != $nonce)
 	{
 		$log_entry = ['origin'=>'notify.php', 'log'=>'not a valid nonce used', 'post'=>$_POST];
 		$logger->log($log_entry);
 		exit;
 	}
+	$cache->delete('awaiting/'.$request_uri);
 
 	list( $type, $id, $date ) = explode('/', $request_uri);
 
