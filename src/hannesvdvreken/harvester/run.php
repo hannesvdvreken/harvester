@@ -18,9 +18,9 @@
 
 	/* testing */
 	$stops = $stop_model->get_all();
-	$stops = [["sid"=>"751","stop"=>"Londerzeel"]];
+	echo json_encode($stops);
 	
-	$date = date('Ymd', strtotime('+3 days'));
+	$date = date('Ymd', strtotime('+2 days'));
 
 	$curl = new \Curl();
 	$logger = new model\Logger();
