@@ -15,5 +15,10 @@
 
 	foreach ( $remotes as $remote ) {
 		$json = $curl->simple_get($remote.'wip.php',[], [CURLOPT_SSL_VERIFYPEER=>false]);
-		echo $json;
+		$wip = json_decode($json);
+		if (!is_null($wip)) {
+			foreach ($result as $job => $start_time) {
+				echo $remote.$job . " busy for ". (time() - strtotime($start_time)) . " seconds\n";
+			}
+		}
 	}
