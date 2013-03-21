@@ -52,7 +52,8 @@
 	$json = $curl->simple_get($remote.$request_uri, [], [CURLOPT_SSL_VERIFYPEER=>false]);
 	$result = json_decode($json);
 	
-	if (isset($result->error)){
+	if (!is_null($curl->error_code))
+	{
 		$log_entry = ['origin'=>'notify.php', 'request'=>$remote.$request_uri, 'result'=>$result, 'method'=>'GET'];
 		$logger->log($log_entry);
 		exit;
@@ -76,7 +77,8 @@
 			$log_entry = ['origin'=>'notify.php', 'request'=>$remote.$request_uri, 'method'=>'POST', 'post_params'=>$params];
 			$logger->log($log_entry);
 
-			if (isset($r->error) && $r->error != 1) {
+			if (!is_null($curl->error_code))
+			{
 				$log_entry = ['origin'=>'notify.php', 'request'=>$remote.$request_uri, 'method'=>'POST', 'post_params'=>$params, 'result'=>$r];
 				$logger->log($log_entry);
 			} else {
