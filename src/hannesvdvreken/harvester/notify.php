@@ -51,8 +51,6 @@
 	
 	$json = $curl->simple_get($remote.$request_uri, [], [CURLOPT_SSL_VERIFYPEER=>false]);
 	$result = json_decode($json);
-
-	echo json_encode(compact('result','json','remote','c','request_uri','nonce')); exit;
 	
 	if (isset($result->error)){
 		$log_entry = ['origin'=>'notify.php', 'request'=>$remote.$request_uri, 'result'=>$result, 'method'=>'GET'];
