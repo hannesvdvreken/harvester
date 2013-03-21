@@ -49,7 +49,7 @@
 	/* get stop data from remote */
 	$remote = Utils::get_scraper( $request_uri );
 	
-	$json = $curl->simple_get($remote.$request_uri, [CURLOPT_SSL_VERIFYPEER=>false]);
+	$json = $curl->simple_get($remote.$request_uri, [], [CURLOPT_SSL_VERIFYPEER=>false]);
 	$result = json_decode($json);
 
 	echo json_encode(compact('result','json','remote','c','request_uri','nonce')); exit;
