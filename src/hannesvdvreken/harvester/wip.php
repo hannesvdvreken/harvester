@@ -12,13 +12,22 @@
 
 	$remotes = config\Config::$remote;
 	$curl = new \Curl();
+	$total = [];
 
 	foreach ( $remotes as $remote ) {
 		$json = $curl->simple_get($remote.'wip.php',[], [CURLOPT_SSL_VERIFYPEER=>false]);
 		$wip = json_decode($json);
 		if (!is_null($wip)) {
-			foreach ($result as $job => $start_time) {
-				echo $remote.$job . " busy for ". (time() - strtotime($start_time)) . " seconds\n";
+			foreach ( $wip as $job => $start_time) {
+				$total[ (int)(time() - strtotime($start_time)) ] = $remote.$job;
 			}
 		}
+	}
+
+	$durations = array_keys($total);
+	sort($durations);
+
+	foreach ( $durations as $time ) {
+		$job = $total[$time];
+		echo "$job busy for $time seconds<br />";
 	}

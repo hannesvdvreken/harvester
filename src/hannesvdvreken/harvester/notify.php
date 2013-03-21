@@ -54,7 +54,7 @@
 	
 	if (!is_null($curl->error_code))
 	{
-		$log_entry = ['origin'=>'notify.php', 'request'=>$remote.$request_uri, 'result'=>$result, 'method'=>'GET'];
+		$log_entry = ['origin'=>'notify.php', 'log'=>'get failed', 'request'=>$remote.$request_uri, 'error_string'=>$curl->error_string, 'error_code'=> $curl->error_code, 'method'=>'GET'];
 		$logger->log($log_entry);
 		exit;
 	}
@@ -69,6 +69,12 @@
 			$request_uri = "trip/$tid/$date";
 			$remote = Utils::get_scraper( $request_uri );
 
+			/* don't repull */
+			$awaiting = $cache->set('awaiting/'.$request_uri);
+			if ($awaiting) {
+				break;
+			}
+
 			/* sign request */
 			$params = Utils::sign_request($request_uri);
 
@@ -79,7 +85,7 @@
 
 			if (!is_null($curl->error_code))
 			{
-				$log_entry = ['origin'=>'notify.php', 'request'=>$remote.$request_uri, 'method'=>'POST', 'post_params'=>$params, 'result'=>$r];
+				$log_entry = ['origin'=>'notify.php', 'log'=>'post failed', 'request'=>$remote.$request_uri, 'method'=>'POST', 'post_params'=>$params, 'error_string'=>$curl->error_string, 'error_code'=> $curl->error_code];
 				$logger->log($log_entry);
 			} else {
 				$cache->set('awaiting/'.$request_uri, ['time'=>date('c'), 'signature'=>$params['signature'], 'nonce'=>$params['nonce']], 60*60);

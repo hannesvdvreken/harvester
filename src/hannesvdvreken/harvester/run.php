@@ -43,7 +43,7 @@
 
 		if (!is_null($curl->error_code))
 		{
-			$log_entry = ['origin'=>'run.php', 'json'=>$json, 'log'=>'post failed', 'error_string'=>$curl->error_string, 'error_code'=> $curl->error_code, 'request'=>$remote.$request_uri, 'method'=>'POST', 'post_params' => $params];
+			$log_entry = ['origin'=>'run.php', 'log'=>'post failed', 'error_string'=>$curl->error_string, 'error_code'=> $curl->error_code, 'request'=>$remote.$request_uri, 'method'=>'POST', 'post_params' => $params];
 			$logger->log($log_entry);
 			exit;
 		}
