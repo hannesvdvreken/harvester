@@ -14,22 +14,33 @@
 
 	header('Content-type: application/json');
 
-	$stop_model = new model\Stop();
+	/* get parameters */
+	array_shift($argv); // remove script name from argv list
+	if (count($argv) < 1){ echo "usage: php run.php Ymd-date [(trip|stop) id]\n"; exit;}
+	$date = array_shift($argv);
 
-	/* testing */
-	$stops = $stop_model->get_all();
-	echo json_encode($stops);
-	
-	$date = date('Ymd', strtotime('+2 days'));
+	$jobs = [];
+
+	if (count($argv) > 0) {
+		list( $type, $id ) = $argv;
+		$jobs[] = "$type/$id/$date";
+	} else {
+		$stop_model = new model\Stop();
+		$stops = $stop_model->get_all();
+		
+		foreach ($stops as $stop) {
+			if (!isset($stop['sid'])) { continue;}
+			$jobs[] = "stop/".$stop['sid']."/$date";
+		}
+	}
 
 	$curl = new \Curl();
 	$logger = new model\Logger();
 	$cache = Cache::getInstance(['system'=>'MemCache']);
 	
-	foreach ($stops as $stop)
+	foreach ($jobs as $request_uri)
 	{
 		/* prepare */
-		$request_uri = "stop/".$stop['sid']."/$date";
 		$remote = Utils::get_scraper($request_uri);
 
 		/* sign request */
@@ -50,40 +61,20 @@
 
 		$cache->set('awaiting/'.$request_uri, ['time'=>date('c'), 'signature'=>$params['signature'], 'nonce'=>$params['nonce']], 60*60);
 
-		if ($stop != end($stops)) {
+		if ($request_uri != end($jobs)) {
 			sleep(config\Config::$stops_interval);
 		}
 	}
 
 	exit;
 
-	sleep( 300 ); // 5 minutes
-	$uncompleted = [];
-
-	/* check for all jobs to be finished */
-	foreach ($stops as $stop)
-	{
-		$request_uri = "stop/".$stop['sid']."/$date";
-		$remote = Utils::get_scraper($request_uri);
-		$json = $curl->simple_get($remote.$request_uri);
-		$result = json_decode($json);
-
-		if (isset($result['error'])) {
-			$uncompleted[] = $request_uri;
-		} else {
-			foreach ($result as $trips)
-			{
-				$tid = $trip['tid'];
-				$request_uri = "trip/$tid/$date";
-				$remote = Utils::get_scraper( $request_uri );
-				$json = $curl->simple_get($remote.$request_uri);
-				$result = json_decode($json);
-				if (isset($result->error)) {
-					$uncompleted[] = $request_uri;
-				}
-			}
-		}
-	}
-
-	$log_entry = ['uncompleted'=>$uncompleted, 'origin'=>'run.php'];
-	$logger->log($log_entry);
+	//db.trips.aggregate([
+		//{$match: {'date':'20130321'}},
+		//{$project : {'stops':1}}, 
+		//{$unwind: '$stops'}, 
+		//{$match: { $and: [
+						//{'stops.arrival_time':{$gte: '2013-03-21T21:22:00+01:00'}}, 
+						//{'stops.arrival_time':{$lte: '2013-03-21T21:52:00+01:00'}}
+						//]}},
+		//{$group : {_id: '$stops.tid'}} //distinct
+		//])

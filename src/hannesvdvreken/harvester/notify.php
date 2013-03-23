@@ -32,17 +32,24 @@
 	/* init cache and curl */
 	use tdt\cache\Cache;
 	$curl = new \Curl();
+	$trip_model = new model\Trip();
 	$cache = Cache::getInstance(['system'=>'MemCache']);
 
 	/* check the nonce */
 	$c = $cache->get('awaiting/'.$request_uri);
-	if ( $c && isset($c['nonce']) && $c['nonce'] != $nonce)
+	$cache->delete('awaiting/'.$request_uri); //anyway
+
+	if ($c
+		&& isset(config\Config::$enable_authentication)
+		&& config\Config::$enable_authentication
+		&& isset($c['params'])
+		&& isset($c['params']['nonce'])
+		&& $c['params']['nonce'] != $nonce)
 	{
 		$log_entry = ['origin'=>'notify.php', 'log'=>'not a valid nonce used', 'post'=>$_POST];
 		$logger->log($log_entry);
 		exit;
 	}
-	$cache->delete('awaiting/'.$request_uri);
 
 	list( $type, $id, $date ) = explode('/', $request_uri);
 
@@ -64,15 +71,25 @@
 		/* all the trips */
 		foreach ( $result as $trip )
 		{
+			/* don't repull */
+			if ($trip_model->exists($trip->tid, $date, $trip->agency)) {
+				$trip_model->save([$trip]);
+				continue;
+			}
+
+			/* save and get full data */
+			$trip_model->save([$trip]);
+
 			/* prepare */
 			$tid = $trip->tid;
+			$platform = isset($trip->platform) ? $trip->platform : NULL;
 			$request_uri = "trip/$tid/$date";
 			$remote = Utils::get_scraper( $request_uri );
 
 			/* don't repull */
-			$awaiting = $cache->set('awaiting/'.$request_uri);
+			$awaiting = $cache->get('awaiting/'.$request_uri);
 			if ($awaiting) {
-				break;
+				continue;
 			}
 
 			/* sign request */
@@ -88,29 +105,24 @@
 				$log_entry = ['origin'=>'notify.php', 'log'=>'post failed', 'request'=>$remote.$request_uri, 'method'=>'POST', 'post_params'=>$params, 'error_string'=>$curl->error_string, 'error_code'=> $curl->error_code];
 				$logger->log($log_entry);
 			} else {
-				$cache->set('awaiting/'.$request_uri, ['time'=>date('c'), 'signature'=>$params['signature'], 'nonce'=>$params['nonce']], 60*60);
+				$cache->set('awaiting/'.$request_uri, ['params'=>$params], 60*60);
 			}
 			
-			/* don't kill them */
 			if ($trip != end($result)) {
+				/* don't kill the scrapers */
 				sleep(config\Config::$trips_interval);
 			}
 		}
 	} else {
 
-		/* transforming */
-		$t = [];
-		$t['headsign'] = end($result)->headsign;
-		$t['tid'] = end($result)->tid;
-		$t['date'] = end($result)->date;
-		$t['agency'] = end($result)->agency;
-		$t['type'] = end($result)->type;
-
-		$t['stops'] = $result;
+		if (!isset(end($result)->tid) ) {
+			$log_entry = ['origin'=>'notify.php', 'log'=>'data malformed', 'request_uri'=>$remote.$request_uri, 'data'=>$result];
+			$logger->log($log_entry);
+			exit;
+		}
 
 		/* saving */
-		$trip = new model\Trip();
-		$trip->save($t);
+		$trip_model->save($result);
 
 		/* do the tdt\input part
 		$transformclass = ucfirst($type) . 'Transform';
