@@ -24,7 +24,7 @@ class Stop
 
 	public function get_all(){
 		$db =& self::$M;
-		$result = $db->trips->aggregate([['$project' => ['stops' => 1]], ['$unwind' => '$stops'], ['$group' => ['_id' => ['sid'=>'$stops.sid','name'=>'$stops.stop']]]])['result'];
+		$result = $db->trips->aggregate([['$group' => ['_id' => ['sid'=>'$sid','name'=>'$stop']]]])['result'];
 		$sids = [];
 		foreach ($result as &$o) {
 			$sids[] = $o['_id'];
