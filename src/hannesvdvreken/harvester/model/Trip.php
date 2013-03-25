@@ -62,6 +62,11 @@ class Trip
 				foreach (get_object_vars($service_stop) as $attr => $value) {
 					if ($attr == 'arrival_time'   && isset($saved[$attr]) ||
 					    $attr == 'departure_time' && isset($saved[$attr]) ) {continue;}
+					if (($attr == 'arrival_delay' || $attr == 'departure_delay') &&
+						 $saved[$attr] != $service_stop->$attr )
+					{
+						 $saved[$attr."_history"][] = ['time' => date('c',time()), 'value' => $service_stop->$attr ];
+					}
 					$saved[$attr] = $service_stop->$attr;
 				}
 				$db->trips->save($saved);
