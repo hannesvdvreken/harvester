@@ -1,0 +1,18 @@
+# 2 runs
+> db.trips.aggregate([{$group:{_id:'$tid'}}]).result.length;
+1974
+> db.trips.aggregate([{$group:{_id:'$sid'}}]).result.length;
+519
+
+# 3 runs
+> db.trips.aggregate([{$group:{_id:'$tid'}}]).result.length;
+2167
+> db.trips.aggregate([{$group:{_id:'$sid'}}]).result.length;
+575
+
+# 4 runs
+> db.trips.aggregate([{$group:{_id:'$tid'}}]).result.length;
+2167
+> db.trips.aggregate([{$group:{_id:'$sid'}}]).result.length;
+575
+>
