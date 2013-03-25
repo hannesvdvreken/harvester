@@ -14,30 +14,20 @@
 
 	header('Content-type: application/json');
 
-	/* get parameters */
-	array_shift($argv); // remove script name from argv list
-	if (count($argv) < 1){ echo "usage: php run.php Ymd-date [(trip|stop) id]\n"; exit;}
-	$date = array_shift($argv);
+	$date = date('Ymd',time());
+	$trip_model = new model\Trip();
+	$trips = $trip_model->get_running();
+	
 
-	$jobs = [];
-
-	if (count($argv) > 0) {
-		list( $type, $id ) = $argv;
-		$jobs[] = "$type/$id/$date";
-	} else {
-		$stop_model = new model\Stop();
-		$stops = $stop_model->get_all();
-		
-		foreach ($stops as $stop) {
-			if (!isset($stop['sid'])) { continue;}
-			$jobs[] = "stop/".$stop['sid']."/$date";
-		}
+	foreach ($trips as &$trip) {
+		$jobs[] = "trip/".$trip['_id']."/$date";
 	}
 
 	$curl = new \Curl();
 	$logger = new model\Logger();
 	$cache = Cache::getInstance(['system'=>'MemCache']);
 	
+	$i = 0;
 	foreach ($jobs as $request_uri)
 	{
 		/* prepare */
@@ -61,9 +51,10 @@
 
 		$cache->set('awaiting/'.$request_uri, ['time'=>date('c'), 'signature'=>$params['signature'], 'nonce'=>$params['nonce']], 60*60);
 
-		if ($request_uri != end($jobs)) {
-			sleep(config\Config::$stops_interval);
+		if ($request_uri != end($jobs) && $i % 10 == 0 ) {
+			sleep(config\Config::$trips_interval);
 		}
+		$i++;
 	}
 
 	exit;

@@ -37,6 +37,21 @@ class Trip
 		return $this;
 	}
 
+	public function get_running() {
+		$db =& self::$M;
+
+		$pipeline[] = ['$match' => [ '$and' => [['date'=>date('Ymd',time())],
+												['arrival_time'  =>['$gt'=> date('c',strtotime('-1 hour'))]],
+												['arrival_time'  =>['$lt'=> date('c',strtotime('+30 minutes'))]],
+												['departure_time'=>['$gt'=> date('c',strtotime('-1 hour'))]],
+												['departure_time'=>['$lt'=> date('c',strtotime('+30 minutes'))]]
+												]]];
+		$pipeline[] = ['$group' => ['_id'=>'$tid']];
+
+		//return $pipeline;
+		return $db->trips->aggregate($pipeline)['result'];
+	}
+
 	public function save( $service_stops ) {
 		$db =& self::$M;
 		
@@ -63,7 +78,7 @@ class Trip
 					if ($attr == 'arrival_time'   && isset($saved[$attr]) ||
 					    $attr == 'departure_time' && isset($saved[$attr]) ) {continue;}
 					if (($attr == 'arrival_delay' || $attr == 'departure_delay') &&
-						(!isset($saved[$attr]) || $saved[$attr] != $service_stop->$attr))
+						 isset($saved[$attr]) && $saved[$attr] != $service_stop->$attr)
 					{
 						 $saved[$attr."_history"][] = ['time' => date('c',time()), 'value' => $service_stop->$attr ];
 					}
