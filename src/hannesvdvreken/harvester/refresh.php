@@ -20,7 +20,7 @@
 	
 
 	foreach ($trips as &$trip) {
-		$jobs[] = "trip/".$trip['_id']."/$date";
+		$jobs[] = "trip/".$trip['_id']."/$date/nocache";
 	}
 
 	$curl = new \Curl();
