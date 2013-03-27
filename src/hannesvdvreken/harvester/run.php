@@ -42,6 +42,7 @@
 	{
 		/* prepare */
 		$remote = Utils::get_scraper($request_uri);
+		echo date('c',time()) . "$remote$request_uri\n";
 
 		/* sign request */
 		$params = Utils::sign_request($request_uri);

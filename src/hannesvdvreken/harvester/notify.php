@@ -114,32 +114,6 @@
 			}
 		}
 	} else {
-
-		if (!isset(end($result)->tid) ) {
-			$log_entry = ['origin'=>'notify.php', 'log'=>'data malformed', 'request_uri'=>$remote.$request_uri, 'data'=>$result];
-			$logger->log($log_entry);
-			exit;
-		}
-
 		/* saving */
 		$trip_model->save($result);
-
-		/* do the tdt\input part
-		$transformclass = ucfirst($type) . 'Transform';
-
-		$input_config['extract']['source'] = Utils::get_scraper( $request_uri ) . $request_uri ;
-		$input_config['extract']['type'] = 'JSON';
-		$input_config['transform'] = ["hannesvdvreken\\harvester\\transform\\$transformclass"];
-		$input_config['map']['type'] = 'RDF';
-		$input_config['map']['mapfile'] = config\Config::$mapfile[$type];
-		$input_config['load']['type'] = 'RDF';
-		//$input_config['graph'] = 'http://stations.io/';
-		$input_config['map']['datatank_uri'] = "http://localhost/";
-		$input_config['map']['datatank_package'] = "NMBS";
-		$input_config['map']['datatank_resource'] = "ServiceStop";
-
-		$input_config['endpoint'] = 'http://dba:dba@localhost:8890/sparql';
-
-		$i = new Input($input_config);
-		$i->execute();*/
 	}

@@ -8,11 +8,13 @@
 
 namespace hannesvdvreken\harvester\model;
 use hannesvdvreken\harvester\config\Config;
+use hannesvdvreken\harvester\model\Logger;
+
 
 class Trip
 {
 	private static $M ;
-	private static $db_name ;
+	private static $logger;
 
 	public function __construct() {
 		$hosts = implode(',',Config::$db_hosts);
@@ -20,6 +22,8 @@ class Trip
 		
 		$m = new \Mongo($moniker);
 		self::$M = $m->{Config::$db_name};
+
+		self::$logger = new Logger();
 	}
 
 	public function exists( $tid, $date, $agency ) {
@@ -72,8 +76,10 @@ class Trip
 
 		foreach ($service_stops as $service_stop) {
 			$index['sid'] = $service_stop->sid;
+
 			if ($db->trips->count($index)) {
 				$saved = $db->trips->findOne($index);
+
 				foreach (get_object_vars($service_stop) as $attr => $value) {
 					if ($attr == 'arrival_time'   && isset($saved[$attr]) ||
 					    $attr == 'departure_time' && isset($saved[$attr]) ) {continue;}
@@ -84,6 +90,7 @@ class Trip
 					}
 					$saved[$attr] = $service_stop->$attr;
 				}
+
 				$db->trips->save($saved);
 			}else{
 				$db->trips->insert( $service_stop );

@@ -31,4 +31,10 @@ class Stop
 		}
 		return $sids;
 	}
+
+	public function set_data($sid, $data){
+		$db =& self::$M;
+
+		$db->trips->update(['sid'=>$sid], ['$set'=>$data], ['multiple'=>true]);
+	}
 }
