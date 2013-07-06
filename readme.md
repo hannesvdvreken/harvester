@@ -2,7 +2,7 @@
 
 Scraping is a slow task, usually run by multiple machines. These commands add messages to a queue, with specific data on what to scrape. Workers then listen to the queue and start scraping. Just add more workers to get the job done more quickly.
 
-Just add configuration for a Message Queueing service, for example [ironMQ](www.iron.io/mq‎). Trigger artisan commands using cron to fill the queue. Other artisan commands like `queue:worker` or `queue:listen` can then read messages and perform long running scraping tasks. These listening/long polling processes should be supervised by eg: supervisor.
+Just add configuration for a Message Queueing service, for example [ironMQ](http://www.iron.io/mq). Trigger artisan commands using cron to fill the queue. Other artisan commands like `queue:worker` or `queue:listen` can then read messages and perform long running scraping tasks. These listening/long polling processes should be supervised by eg: supervisor.
 
 ## Usage
 
