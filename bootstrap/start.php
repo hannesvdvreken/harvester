@@ -29,7 +29,19 @@ $app->redirectIfTrailingSlash();
 $env = $app->detectEnvironment(array(
 
 	'local' => array('your-machine-name'),
-	'production' => array('iRail', 'irail.test.ibbt.be'),
+	'production' => array(
+		'iRail', 
+		'irail.test.ibbt.be', 
+		'harv2', 
+		'harv3', 
+		'harv4', 
+		'harv5', 
+		'harv6', 
+		'harv7',
+		'harv8',
+		'harv9',
+		'harv10',
+	),
 
 ));
 
