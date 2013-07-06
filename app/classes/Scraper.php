@@ -203,7 +203,5 @@ class Scraper {
 
 			}
 		}
-
 	}
-
 }
