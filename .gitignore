@@ -1,6 +1,7 @@
-*.DS_Store
-.project
-/vendor/
-/composer.lock
-/src/hannesvdvreken/harvester/config/Config.php
-/src/hannesvdvreken/harvester/config/private.pem
+/bootstrap/compiled.php
+/app/config/local
+/app/config/production
+/vendor
+composer.phar
+composer.lock
+.DS_Store

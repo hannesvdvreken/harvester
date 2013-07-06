@@ -1,21 +1,41 @@
 {
-	"name": "hannesvdvreken/harvester",
-	"description": "using memcache and an asynchronous service to handle multiple scraper workers.",
-	"keywords": ["input", "scraper", "json", "iRail", "mobile"],
-	"homepage": "https://github.com/irail",
-	"type": "library",
-	"license": "AGPLv3",
+	"name": "laravel/laravel",
+	"description": "The Laravel Framework.",
+	"keywords": ["framework", "laravel"],
 	"require": {
-		"php": ">=5.4.0",
-		"tdt/cache": "dev-master",
-		"tdt/input": "dev-master",
-		"laravel/curl": "dev-master"
+		"laravel/framework": "4.0.*",
+		"guzzle/guzzle": "3.7.*@dev",
+		"iron-io/iron_mq": "dev-master",
+		"jenssegers/mongodb": "dev-master",
+		"hannesvdvreken/railtime-scraper": "dev-master"
 	},
-	"require-all": true,
-    "minimum-stability" : "dev",
-    "autoload": {
-		"psr-0": {
-			"hannesvdvreken\\harvester\\": "src/"
-		}
-	}
+	"autoload": {
+		"classmap": [
+			"app/commands",
+			"app/classes",
+			"app/controllers",
+			"app/models",
+			"app/database/migrations",
+			"app/database/seeds",
+			"app/tests/TestCase.php"
+		]
+	},
+	"scripts": {
+		"post-install-cmd": [
+			"php artisan optimize"
+		],
+		"pre-update-cmd": [
+			"php artisan clear-compiled"
+		],
+		"post-update-cmd": [
+			"php artisan optimize"
+		],
+		"post-create-project-cmd": [
+			"php artisan key:generate"
+		]
+	},
+	"config": {
+		"preferred-install": "dist"
+	},
+	"minimum-stability": "dev"
 }
