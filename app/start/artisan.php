@@ -11,6 +11,7 @@
 |
 */
 
-Artisan::add(new DailyPullCommand);
-Artisan::add(new DelayPullCommand);
-Artisan::add(new ManualPullCommand);
+Artisan::add(new DailyCommand);
+Artisan::add(new FrequentPullCommand);
+Artisan::add(new ManualQueueCommand);
+Artisan::add(new ManualScrapeCommand);

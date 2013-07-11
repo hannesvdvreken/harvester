@@ -6,9 +6,20 @@ use Guzzle\Http\Client;
 class Scraper {
 
 	/**
+	 * main function when called from the queue
+	 */
+	public function fire ($job, $data) {
+
+		$this->execute($data);
+
+		$job->delete();
+
+	}
+
+	/**
 	 * main function
 	 */
-	public function fire ($job, $data)
+	public function execute ($data)
 	{
 		// timer
 		$start = microtime(true);
@@ -24,6 +35,10 @@ class Scraper {
 		
 		// scrape
 		$result = $rts->{$data['type']}($data['id'], $data['date']);
+
+		// logging
+		echo "scraping completed in ". (microtime(true) - $start) ." seconds.\n";
+		$start = microtime(true);
 		
 		// save to db
 		$result = $this->prepare($result, $data['type']);
@@ -35,8 +50,6 @@ class Scraper {
 		{
 			$this->queue_trips($result);
 		}
-		
-		$job->delete();
 
 		echo "job completed in ". (microtime(true) - $start) ." seconds.\n";
 	}
@@ -111,7 +124,7 @@ class Scraper {
 			$member = "$type:{$trip['tid']}";
 
 			// added to set?
-			if ($redis->sismember($date, $member)) continue;
+			if ($redis->sismember("pulled:$date", $member)) continue;
 
 			// add to set later
 			$pushed[] = $member;
@@ -131,7 +144,7 @@ class Scraper {
 		Redis::pipeline(function($pipe) use($pushed, $date) {
 
 			foreach ($pushed as $member) {
-				$pipe->sadd($date, $member);
+				$pipe->sadd("pulled:$date", $member);
 			}
 
 		});
@@ -142,16 +155,43 @@ class Scraper {
 	 */
 	private function prepare($result, $type)
 	{
+		// calculate route signature to allow query on routes
+		if ($type == 'trip') {
+
+			// start empty
+			$signature = '';
+
+			// include all stopnames in signature
+			foreach ($result as &$s) 
+			{
+				$signature .= $s['stop'];
+			}
+
+			// hash
+			$signature = hash('sha1', $signature);
+
+		}
+
+		// loop
 		foreach ($result as &$s) {
 		
 			// make sure to use integers
 			$s['tid'] = (integer)$s['tid'];
-			$s['sid'] = (integer)$s['sid'];
 			$s['date'] = (integer)$s['date'];
 
-			// unset departure & arrival times for resp. last & first
+			// safe
+			if (isset($s['sid']))
+			{
+				$s['sid'] = (integer)$s['sid'];
+			}
+
+			// do trip stuff
 			if ($type == 'trip')
 			{
+				// set route
+				$s['route'] = $signature;
+
+				// unset departure & arrival times for resp. last & first
 				if ($s == reset($result))
 				{
 					// a vehicle does not arrive at a first stop
@@ -165,6 +205,7 @@ class Scraper {
 					unset($s['departure_delay']);
 				}
 			}
+			// do stop stuff
 			elseif ($type == 'stop')
 			{
 				unset($s['arrival_time']);
@@ -180,7 +221,7 @@ class Scraper {
 	/**
 	 * save array of data as objects in db
 	 */
-	private function save ($result, $type)
+	private function save($result, $type)
 	{
 		// first
 		$first = reset($result);
@@ -208,7 +249,7 @@ class Scraper {
 
 		foreach ($result as $s) {
 
-			if (in_array($s[$id_field], $saved_keys))
+			if (isset($s[$id_field]) && in_array($s[$id_field], $saved_keys))
 			{
 				// merge
 				$saved = ServiceStop::where('tid',  $s['tid'])

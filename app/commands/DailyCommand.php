@@ -5,7 +5,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 use Guzzle\Http\Client;
 
-class DailyPullCommand extends Command {
+class DailyCommand extends Command {
 
 	/**
 	 * The console command name.
@@ -52,8 +52,7 @@ class DailyPullCommand extends Command {
 
 		// static
 		$type = 'stop';
-		$days = 0; // Config::get('');
-		$date = date('Ymd', strtotime("+ $days days"));
+		$date = $this->option('date');
 
 		$pushed = array();
 
@@ -66,7 +65,7 @@ class DailyPullCommand extends Command {
 			$member = "$type:{$station['sid']}";
 
 			// added to set?
-			if ($redis->sismember($date, $member)) continue;
+			if ($redis->sismember("pulled:$date", $member)) continue;
 
 			// add to set later
 			$pushed[] = $member;
@@ -86,7 +85,7 @@ class DailyPullCommand extends Command {
 		Redis::pipeline(function($pipe) use($pushed, $date) {
 
 			foreach ($pushed as $member) {
-				$pipe->sadd($date, $member);
+				$pipe->sadd("pulled:$date", $member);
 			}
 
 		});
@@ -115,13 +114,9 @@ class DailyPullCommand extends Command {
 	 */
 	protected function getOptions()
 	{
-
-		return array();
-
-		/*
 		return array(
-			array('example', null, InputOption::VALUE_OPTIONAL, 'An example option.', null),
-		);*/
+			array('date', null, InputOption::VALUE_OPTIONAL, 'Optional date.', date('Ymd')),
+		);
 	}
 
 }

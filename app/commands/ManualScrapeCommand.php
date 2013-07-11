@@ -4,21 +4,21 @@ use Illuminate\Console\Command;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 
-class ManualPullCommand extends Command {
+class ManualScrapeCommand extends Command {
 
 	/**
 	 * The console command name.
 	 *
 	 * @var string
 	 */
-	protected $name = 'harvest:manual';
+	protected $name = 'harvest:scrape';
 
 	/**
 	 * The console command description.
 	 *
 	 * @var string
 	 */
-	protected $description = 'Run this to send a specific message.';
+	protected $description = 'Run this execute a specified scraping job now.';
 
 	/**
 	 * Create a new command instance.
@@ -44,8 +44,9 @@ class ManualPullCommand extends Command {
 			'date' => $this->argument('date'),
 		);
 
-		// add message to queue
-		Queue::push("Scraper", $data);
+		// fire
+		$scraper = new Scraper();
+		$scraper->execute($data);
 	}
 
 	/**
