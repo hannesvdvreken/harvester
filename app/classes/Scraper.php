@@ -10,21 +10,26 @@ class Scraper {
 	 */
 	public function fire ($job, $data)
 	{
-		var_dump($data);
+		// timer
+		$start = microtime(true);
+
+		// echo
+		echo $data['type'] .' '. $data['id'] .' on '. $data['date'] . "\n";
 
 		// prepare
 		list($stop_names, $inverted) = $this->get_arrays();
-
+		
 		// prepare scraper
 		$rts = new RailTimeScraper($stop_names, $inverted);
 		
 		// scrape
 		$result = $rts->{$data['type']}($data['id'], $data['date']);
-
+		
 		// save to db
 		$result = $this->prepare($result, $data['type']);
-		$this->save($result);
-
+		
+		$this->save($result, $data['type']);
+		
 		// add trips to queue to pull more data
 		if ($data['type'] == 'stop')
 		{
@@ -32,8 +37,8 @@ class Scraper {
 		}
 		
 		$job->delete();
-		//$job->release(1);
 
+		echo "job completed in ". (microtime(true) - $start) ." seconds.\n";
 	}
 
 	/**
@@ -175,32 +180,54 @@ class Scraper {
 	/**
 	 * save array of data as objects in db
 	 */
-	private function save ($result)
+	private function save ($result, $type)
 	{
+		// first
+		$first = reset($result);
+
+		// what field
+		$id_field = ($type == 'stop' ? 'sid': 'tid');
+
+		// get all
+		$saved = ServiceStop::where($id_field,  $first[$id_field])
+			                ->where('date', $first['date'])
+			                ->get();
+
+		// inverse
+		$id_field = ($type == 'stop' ? 'tid': 'sid');
+
+		// prepare
+		$saved_keys = array();
+
+		// loop
+		foreach ($saved as $s) {
+			
+			$saved_keys[] = $s->$id_field;
+
+		}
 
 		foreach ($result as $s) {
 
-			// count
-			$count = ServiceStop::where('tid',  $s['tid'])
-			                    ->where('sid',  $s['sid'])
-			                    ->where('date', $s['date'])
-			                    ->count();
-
-			if ($count)
+			if (in_array($s[$id_field], $saved_keys))
 			{
 				// merge
 				$saved = ServiceStop::where('tid',  $s['tid'])
 			                        ->where('sid',  $s['sid'])
-			                        ->where('date', $s['date']);
-			                        //->get();
-
-			    $saved->update($s);
+			                        ->where('date', $s['date'])
+			                        ->first();
+			    
+			    // update fields
+				foreach($s as $key => $value) {
+					$saved->$key = $value;
+				}
+				
+				// save to db
+			    $saved->save();
 			}
 			else
 			{
 				// insert
 				ServiceStop::insert($s);
-
 			}
 		}
 	}
