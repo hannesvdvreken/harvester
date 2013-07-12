@@ -83,6 +83,7 @@ class FrequentPullCommand extends Command {
 				foreach ($value as $seq => &$s) {
 					// find latest
 					if (isset($s['departure_time']) &&
+						isset($s['arrival_time'  ])
 						$s['departure_time'] >= $max['departure_time'])
 					{
 						$max = $s;
@@ -90,6 +91,7 @@ class FrequentPullCommand extends Command {
 				}
 
 				// see if latest is after now
+				$str = isset($max['arrival_delay']) ? "- {$max['arrival_delay']} seconds" : 'now';
 				$max_time = date('c', strtotime($str));
 
 				// between first and last stop
@@ -100,7 +102,9 @@ class FrequentPullCommand extends Command {
 					$this->add($tid, $min['date']);	
 				}
 			}
-			elseif ($min['departure_time'] <= $min_time &&
+			elseif (isset($min['departure_time']) && 
+			        isset($max['arrival_time'  ]) &&
+				    $min['departure_time'] <= $min_time &&
 			        $max['arrival_time'  ] >= $max_time)
 			{
 				// trip is active
