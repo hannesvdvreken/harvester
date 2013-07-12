@@ -83,7 +83,7 @@ class FrequentPullCommand extends Command {
 				foreach ($value as $seq => &$s) {
 					// find latest
 					if (isset($s['departure_time']) &&
-						isset($s['arrival_time'  ])
+						isset($s['arrival_time'  ]) &&
 						$s['departure_time'] >= $max['departure_time'])
 					{
 						$max = $s;
@@ -182,7 +182,8 @@ class FrequentPullCommand extends Command {
 			            'arrival_time', 'arrival_delay', 
 			            'departure_time', 'cancelled');
 
-		$result = ServiceStop::where('date', (integer)date('Ymd'))->get($fields)->toArray();
+		$result = ServiceStop::where('date', (integer)date('Ymd', strtotime("- $date_delay hours")))
+		                     ->get($fields)->toArray();
 		
 		// build hash
 		foreach ($result as $s)
@@ -196,7 +197,7 @@ class FrequentPullCommand extends Command {
 
 		// cache it
 		Cache::put($cache_key, $hash, $cache_time);
-
+		
 		// and return
 		return $hash;
 

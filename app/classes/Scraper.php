@@ -223,40 +223,16 @@ class Scraper {
 	 */
 	private function save($result, $type)
 	{
-		// first
-		$first = reset($result);
-
-		// what field
-		$id_field = ($type == 'stop' ? 'sid': 'tid');
-
-		// get all
-		$saved = ServiceStop::where($id_field,  $first[$id_field])
-			                ->where('date', $first['date'])
-			                ->get();
-
-		// inverse
-		$id_field = ($type == 'stop' ? 'tid': 'sid');
-
-		// prepare
-		$saved_keys = array();
-
 		// loop
-		foreach ($saved as $s) {
-			
-			$saved_keys[] = $s->$id_field;
-
-		}
-
 		foreach ($result as $s) {
+			// pull
+			$saved = ServiceStop::where('tid',  $s['tid'])
+			                    ->where('sid',  $s['sid'])
+			                    ->where('date', $s['date'])
+			                    ->first();
 
-			if (isset($s[$id_field]) && in_array($s[$id_field], $saved_keys))
+			if ($saved)
 			{
-				// merge
-				$saved = ServiceStop::where('tid',  $s['tid'])
-			                        ->where('sid',  $s['sid'])
-			                        ->where('date', $s['date'])
-			                        ->first();
-			    
 			    // update fields
 				foreach($s as $key => $value) {
 					$saved->$key = $value;
