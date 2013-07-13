@@ -160,11 +160,15 @@ class Scraper {
 
 			// start empty
 			$signature = '';
+			$origin    = '';
+			$headsign  = '';
 
 			// include all stopnames in signature
 			foreach ($result as &$s) 
 			{
 				$signature .= $s['stop'];
+				$origin    .= (reset($result) == $s) ? $s['stop'] : '';
+				$headsign  .= (end($result)   == $s) ? $s['stop'] : '';
 			}
 
 			// hash
@@ -191,6 +195,10 @@ class Scraper {
 				// set route
 				$s['route'] = $signature;
 
+				// headsign & origin
+				$s['origin']   = $origin;
+				$s['headsign'] = $headsign;
+
 				// unset departure & arrival times for resp. last & first
 				if ($s == reset($result))
 				{
@@ -212,6 +220,9 @@ class Scraper {
 				unset($s['arrival_delay']);
 				unset($s['departure_delay']);
 				unset($s['departure_time']);
+
+				unset($s['headsign']);
+				unset($s['origin']);
 			}
 		}
 

@@ -173,7 +173,7 @@ class FrequentPullCommand extends Command {
 
 		// get all trip id's
 		$result = ServiceStop::where('date', (integer)date('Ymd', strtotime("- $date_delay hours")))
-							 ->whereNotNull('sequence')
+		                     ->whereNotNull('sequence')
 		                     ->distinct('tid')
 		                     ->get()->toArray();
 		
