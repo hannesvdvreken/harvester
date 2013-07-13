@@ -39,15 +39,20 @@ class FrequentPullCommand extends Command {
 	 */
 	public function fire()
 	{
-		$previous = microtime(true);
+		// start timer
+		$start = microtime(true);
 
+		// get all trips by day
 		$hash = $this->get_trips();
+
+		// set counter to 0
+		$this->number = 0;
 
 		// loop
 		foreach ($hash as $tid => $value) {
 
 			// min
-			$min = $value[1];
+			$min = $value[1]; // sequence 1 → ...
 
 			// max
 			$max = $value[max(array_keys($value))];
@@ -112,16 +117,19 @@ class FrequentPullCommand extends Command {
 			}
 		}
 
-		// save to redis
-		// get connection
-		$redis = Redis::connection();
+		// save statistics if usefull
+		if ($this->number) 
+		{
+			// get connection
+			$redis = Redis::connection();
 
-		// save number of added jobs
-		$redis->hset('stats:'. date('Ymd', strtotime('- 3 hours')), date('c'), $this->number);
+			// save number of added jobs
+			$redis->hset('stats:'. date('Ymd', strtotime('- 3 hours')), date('c'), $this->number);
+		}
 		
 		// debug info
 		echo "Looped all trips, found {$this->number} active.\n";
-		echo "In ". (microtime(true) - $previous) ." seconds.\n";
+		echo "In ". (microtime(true) - $start) ." seconds.\n";
 	}
 
 	/**
@@ -165,6 +173,7 @@ class FrequentPullCommand extends Command {
 
 		// get all trip id's
 		$result = ServiceStop::where('date', (integer)date('Ymd', strtotime("- $date_delay hours")))
+							 ->whereNotNull('sequence')
 		                     ->distinct('tid')
 		                     ->get()->toArray();
 		
