@@ -4,6 +4,10 @@ Scraping is a slow task, usually run by multiple machines. These commands add me
 
 Just add configuration for a Message Queueing service, for example [ironMQ](http://www.iron.io/mq). Trigger artisan commands using cron to fill the queue. Other artisan commands like `queue:worker` or `queue:listen` can then read messages and perform long running scraping tasks. These listening/long polling processes should be supervised by eg: supervisor.
 
+## Configuration.
+
+Use a message queue. Laravel supports IronMQ, Amazon SQS and beanstalkd. Configure it in `app/config/production/queue.php`. This harvester uses MongoDB as system of record (SOR). Configure it in `app/config/production/database.php`. No need to change the `default` value in that config array. At the bottom, do configure redis, because we are using Redis both; to control which jobs are already on the queue, and to save statistics about the harvester. Since you have Redis configured, feel free to use it for caching as well. See `app/config/cache.php` for more information.
+
 ## Usage
 
 add cron job for daily run to `/etc/crontab`:
