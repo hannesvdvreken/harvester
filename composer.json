@@ -5,7 +5,7 @@
 	"require": {
 		"laravel/framework": "4.0.*",
 		"guzzle/guzzle": "3.7.*@dev",
-		"iron-io/iron_mq": "dev-master",
+		"pda/pheanstalk": "dev-master",
 		"jenssegers/mongodb": "dev-master",
 		"hannesvdvreken/railtime-scraper": "dev-master"
 	},
