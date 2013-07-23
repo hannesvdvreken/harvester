@@ -236,11 +236,15 @@ class Scraper {
 	{
 		// loop
 		foreach ($result as $s) {
-			// pull
-			$saved = ServiceStop::where('tid',  $s['tid'])
-			                    ->where('sid',  $s['sid'])
-			                    ->where('date', $s['date'])
-			                    ->first();
+
+			if (isset($s['sid']))
+			{
+				// pull
+				$saved = ServiceStop::where('tid',  $s['tid'])
+				                    ->where('sid',  $s['sid'])
+				                    ->where('date', $s['date'])
+				                    ->first();
+			}
 
 			if ($saved)
 			{
