@@ -237,6 +237,8 @@ class Scraper {
 		// loop
 		foreach ($result as $s) {
 
+			$saved = false;
+
 			if (isset($s['sid']))
 			{
 				// pull
