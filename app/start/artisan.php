@@ -15,3 +15,5 @@ Artisan::add(new DailyCommand);
 Artisan::add(new FrequentPullCommand);
 Artisan::add(new ManualQueueCommand);
 Artisan::add(new ManualScrapeCommand);
+Artisan::add(new ExportGTFSCommand);
+Artisan::add(new ExportCSVCommand);

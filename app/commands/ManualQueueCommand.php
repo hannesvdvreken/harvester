@@ -55,7 +55,6 @@ class ManualQueueCommand extends Command {
 	 */
 	protected function getArguments()
 	{
-
 		return array(
 			array('type', InputArgument::REQUIRED, 'The type: "trip" or "stop".'),
 			array('id', InputArgument::REQUIRED, 'The id.'),
@@ -70,13 +69,7 @@ class ManualQueueCommand extends Command {
 	 */
 	protected function getOptions()
 	{
-
 		return array();
-
-		/*
-		return array(
-			array('example', null, InputOption::VALUE_OPTIONAL, 'An example option.', null),
-		);*/
 	}
 
 }
