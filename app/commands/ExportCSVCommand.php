@@ -305,13 +305,15 @@ class ExportCSVCommand extends Command {
 
 		// write file
 		$output = join($this->delimiter, array_map($m, $output_meta));
-		File::delete("$this->storage_dir/$route-output.meta.csv");
-		File::put("$this->storage_dir/$route-output.meta.csv", $output);
+		$fn = "$this->storage_dir/$route-out.meta.csv";
+		File::delete($fn);
+		File::put($fn, $output);
 
 		// write file
 		$input = join($this->delimiter, array_map($m, $input_meta));
-		File::delete("$this->storage_dir/$route-input.meta.csv");
-		File::put("$this->storage_dir/$route-input.meta.csv", $input);
+		$fn = "$this->storage_dir/$route.meta.csv";
+		File::delete($fn);
+		File::put($fn, $input);
 	}
 
 	/**
