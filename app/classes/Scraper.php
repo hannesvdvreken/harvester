@@ -10,7 +10,10 @@ class Scraper {
 	 */
 	public function fire ($job, $data) {
 
-		$this->execute($data);
+		if ($job->attempts() == 0)
+		{
+			$this->execute($data);
+		}
 
 		$job->delete();
 
@@ -43,7 +46,10 @@ class Scraper {
 		// save to db
 		$result = $this->prepare($result, $data['type']);
 		
-		$this->save($result, $data['type']);
+		if (true)//App::environment() == 'production')
+		{
+			$this->save($result, $data['type']);
+		}
 		
 		// add trips to queue to pull more data
 		if ($data['type'] == 'stop')
@@ -137,17 +143,44 @@ class Scraper {
 			);
 
 			// add message to queue
-			Queue::push("Scraper", $data);
+			if (App::environment() == 'production')
+			{
+				Queue::push("Scraper", $data);
+			}
 		}
 
-		// pipeline
-		Redis::pipeline(function($pipe) use($pushed, $date) {
+		$add = function ($pushed) use ($date)
+		{
+			// pipeline
+			Redis::pipeline(function($pipe) use($pushed, $date) 
+			{
+				foreach ($pushed as $member) 
+				{
+					$pipe->sadd("pulled:$date", $member);
+				}
+			});
+		};
 
-			foreach ($pushed as $member) {
-				$pipe->sadd("pulled:$date", $member);
-			}
+		$this->moderate($pushed, $add);
+	}
 
-		});
+	/**
+	 * to redis
+	 */
+	private function moderate($large, $callback, $limit = 50)
+	{
+		// prepare
+		$num = ceil(count($large) / $limit);
+
+		// loop
+		foreach (range(0, $num - 1) as $i) 
+		{
+			// take part
+			$partial = array_slice($large, $i * $limit, $limit);
+
+			// process
+			$callback($partial);
+		}
 	}
 
 	/**
