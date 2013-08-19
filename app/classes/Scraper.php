@@ -10,7 +10,7 @@ class Scraper {
 	 */
 	public function fire ($job, $data) {
 
-		if ($job->attempts() == 0)
+		if ($job->attempts() == 1)
 		{
 			$this->execute($data);
 		}
@@ -210,7 +210,7 @@ class Scraper {
 		}
 
 		// loop
-		foreach ($result as &$s) {
+		foreach ($result as $key => &$s) {
 		
 			// make sure to use integers
 			$s['tid'] = (integer)$s['tid'];
