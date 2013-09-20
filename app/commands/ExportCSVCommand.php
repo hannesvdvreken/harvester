@@ -50,16 +50,12 @@ class ExportCSVCommand extends Command {
 		$db = App::make('mongodb');
 		$db = $db->connection()->getDb();
 
-		// get redis connection
-		$redis = Redis::connection();
-
-
 		// prepare
 		$this->prepare_folders();
 
 		// get one full trip
 		$trip = $this->get_one_trip($db, $this->argument('route'));
-		$this->write_headers($trip);
+		list($headers, $headers_out) = $this->create_headers($trip);
 
 		// loop trip
 		foreach ($trip as $seq)
@@ -146,8 +142,8 @@ class ExportCSVCommand extends Command {
 		}
 
 		// filter values and only valids
-		$csv     = array();
-		$csv_out = array();
+		$csv     = array($headers);
+		$csv_out = array($headers_out);
 
 		foreach ($hashed as $date => &$trips) 
 		{
@@ -259,7 +255,7 @@ class ExportCSVCommand extends Command {
 	/**
 	 * @param array trip_data
 	 */
-	private function write_headers($trip_data)
+	private function create_headers($trip_data)
 	{
 		// init
 		$input_meta = array();
@@ -297,23 +293,7 @@ class ExportCSVCommand extends Command {
 		// counted
 		$input_meta[] = 'aantal reizigers totaal';
 
-		// mapping function
-		$m = function($value)
-		{
-			return "\"$value\"";
-		};
-
-		// write file
-		$output = join($this->delimiter, array_map($m, $output_meta));
-		$fn = "$this->storage_dir/$route-out.meta.csv";
-		File::delete($fn);
-		File::put($fn, $output);
-
-		// write file
-		$input = join($this->delimiter, array_map($m, $input_meta));
-		$fn = "$this->storage_dir/$route.meta.csv";
-		File::delete($fn);
-		File::put($fn, $input);
+		return array($input_meta, $output_meta);
 	}
 
 	/**
