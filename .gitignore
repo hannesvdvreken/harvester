@@ -4,5 +4,4 @@
 /app/storage/ai
 /vendor
 composer.phar
-composer.lock
 .DS_Store
